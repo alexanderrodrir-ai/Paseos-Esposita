@@ -3,176 +3,150 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control de Paseos 🐕</title>
+  <title>Paseos Esposita 🐶</title>
   <style>
     body {
-      font-family: 'Arial', sans-serif;
-      background: #f3f7f8;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      font-family: Arial, sans-serif;
+      background: #fff8f0;
       color: #333;
+      text-align: center;
+      padding: 20px;
     }
     h1 {
-      margin-top: 20px;
-      color: #4b6cb7;
-    }
-    .container {
-      width: 90%;
-      max-width: 400px;
-      background: white;
-      border-radius: 10px;
-      padding: 20px;
-      margin-top: 20px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+      color: #ff7b7b;
     }
     input, button {
-      width: 100%;
+      margin: 8px;
       padding: 10px;
-      margin: 6px 0;
+      border-radius: 8px;
       border: 1px solid #ccc;
-      border-radius: 5px;
-      font-size: 15px;
     }
     button {
-      background: #4b6cb7;
+      background-color: #ff7b7b;
       color: white;
       cursor: pointer;
-      border: none;
     }
     button:hover {
-      background: #395591;
+      background-color: #ff5252;
     }
-    .resumen {
+    table {
+      width: 100%;
       margin-top: 20px;
-      background: #eef2f3;
-      border-radius: 8px;
-      padding: 15px;
+      border-collapse: collapse;
     }
-    .perro {
-      border-bottom: 1px solid #ccc;
-      padding: 8px 0;
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
     }
-    .acciones {
-      margin-top: 10px;
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
+    th {
+      background-color: #ffbaba;
+    }
+    #resumen {
+      margin-top: 30px;
+      font-weight: bold;
+      background: #ffecec;
+      padding: 10px;
+      border-radius: 10px;
     }
   </style>
 </head>
 <body>
+  <h1>🐾 Paseos Esposita 🐾</h1>
 
-  <h1>🐾 Control de Paseos</h1>
+  <input type="text" id="nombrePerro" placeholder="Nombre del perro">
+  <input type="number" id="valorPaseo" placeholder="Valor del paseo">
+  <button onclick="agregarPaseo()">Agregar paseo</button>
+  <button onclick="mostrarResumen()">Mostrar resumen mensual</button>
+  <button onclick="reiniciar()">Reiniciar mes</button>
 
-  <div class="container">
-    <h3>Agregar perro</h3>
-    <input type="text" id="nombrePerro" placeholder="Nombre del perro">
-    <input type="number" id="tarifaPerro" placeholder="Valor por paseo">
-    <button onclick="agregarPerro()">Agregar perro</button>
+  <table id="tablaPaseos">
+    <thead>
+      <tr>
+        <th>Perro</th>
+        <th>Valor</th>
+        <th>Fecha</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-    <h3>Registrar paseo</h3>
-    <input type="text" id="paseoPerro" placeholder="Nombre del perro">
-    <button onclick="registrarPaseo()">Registrar paseo</button>
-
-    <div class="acciones">
-      <button onclick="mostrarResumen()">Ver resumen mensual</button>
-      <button onclick="reiniciarMes()">Reiniciar mes</button>
-    </div>
-
-    <div class="resumen" id="resumen">
-      <h3>Resumen</h3>
-      <p>No hay datos aún.</p>
-    </div>
-  </div>
+  <div id="resumen"></div>
 
   <script>
-    // Cargar datos guardados
-    let perros = JSON.parse(localStorage.getItem('perros')) || [];
+    let paseos = JSON.parse(localStorage.getItem("paseos")) || [];
 
-    function guardarDatos() {
-      localStorage.setItem('perros', JSON.stringify(perros));
+    function agregarPaseo() {
+      const nombre = document.getElementById("nombrePerro").value.trim();
+      const valor = parseFloat(document.getElementById("valorPaseo").value);
+
+      if (!nombre || isNaN(valor)) {
+        alert("Por favor ingresa el nombre y el valor del paseo.");
+        return;
+      }
+
+      // Obtener la fecha actual
+      const fecha = new Date();
+      const fechaTexto = fecha.toLocaleDateString('es-CO', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+
+      paseos.push({ nombre, valor, fecha: fechaTexto });
+      localStorage.setItem("paseos", JSON.stringify(paseos));
+
+      document.getElementById("nombrePerro").value = "";
+      document.getElementById("valorPaseo").value = "";
+
+      mostrarPaseos();
     }
 
-    function agregarPerro() {
-      const nombre = document.getElementById('nombrePerro').value.trim();
-      const tarifa = parseFloat(document.getElementById('tarifaPerro').value);
-      if (!nombre || isNaN(tarifa)) {
-        alert("Por favor escribe el nombre y la tarifa del perro.");
-        return;
-      }
+    function mostrarPaseos() {
+      const tbody = document.querySelector("#tablaPaseos tbody");
+      tbody.innerHTML = "";
 
-      const perroExistente = perros.find(p => p.nombre.toLowerCase() === nombre.toLowerCase());
-      if (perroExistente) {
-        alert("Ese perro ya está registrado.");
-        return;
-      }
-
-      perros.push({ nombre, tarifa, paseos: 0 });
-      guardarDatos();
-      document.getElementById('nombrePerro').value = '';
-      document.getElementById('tarifaPerro').value = '';
-      alert(`Perro ${nombre} agregado correctamente.`);
-    }
-
-    function registrarPaseo() {
-      const nombre = document.getElementById('paseoPerro').value.trim();
-      if (!nombre) {
-        alert("Escribe el nombre del perro para registrar el paseo.");
-        return;
-      }
-
-      const perro = perros.find(p => p.nombre.toLowerCase() === nombre.toLowerCase());
-      if (!perro) {
-        alert("Ese perro no está registrado.");
-        return;
-      }
-
-      perro.paseos += 1;
-      guardarDatos();
-      document.getElementById('paseoPerro').value = '';
-      alert(`Paseo registrado para ${perro.nombre}.`);
+      paseos.forEach(p => {
+        const fila = `<tr>
+          <td>${p.nombre}</td>
+          <td>$${p.valor.toFixed(0)}</td>
+          <td>${p.fecha}</td>
+        </tr>`;
+        tbody.innerHTML += fila;
+      });
     }
 
     function mostrarResumen() {
-      const resumenDiv = document.getElementById('resumen');
-      if (perros.length === 0) {
-        resumenDiv.innerHTML = "<p>No hay perros registrados aún.</p>";
-        return;
-      }
+      const resumenDiv = document.getElementById("resumen");
+      const totales = {};
 
-      let totalPaseos = 0;
-      let totalDinero = 0;
-      let html = "";
-
-      perros.forEach(p => {
-        const dineroPerro = p.paseos * p.tarifa;
-        totalPaseos += p.paseos;
-        totalDinero += dineroPerro;
-        html += `
-          <div class="perro">
-            <strong>${p.nombre}</strong><br>
-            Paseos: ${p.paseos} <br>
-            Total ganado: $${dineroPerro.toFixed(2)}
-          </div>
-        `;
+      paseos.forEach(p => {
+        if (!totales[p.nombre]) totales[p.nombre] = 0;
+        totales[p.nombre] += p.valor;
       });
 
-      html += `<hr><strong>Total paseos:</strong> ${totalPaseos}<br><strong>Total dinero:</strong> $${totalDinero.toFixed(2)}`;
-      resumenDiv.innerHTML = html;
+      let totalGeneral = 0;
+      let texto = "📅 <b>Resumen del mes:</b><br><br>";
+
+      for (let perro in totales) {
+        texto += `${perro}: $${totales[perro].toFixed(0)}<br>`;
+        totalGeneral += totales[perro];
+      }
+
+      texto += `<br>💰 <b>Total general:</b> $${totalGeneral.toFixed(0)}`;
+      resumenDiv.innerHTML = texto;
     }
 
-    function reiniciarMes() {
+    function reiniciar() {
       if (confirm("¿Seguro que quieres reiniciar los datos del mes?")) {
-        perros.forEach(p => p.paseos = 0);
-        guardarDatos();
-        mostrarResumen();
-        alert("Datos del mes reiniciados.");
+        paseos = [];
+        localStorage.removeItem("paseos");
+        mostrarPaseos();
+        document.getElementById("resumen").innerHTML = "";
       }
     }
-  </script>
 
+    mostrarPaseos();
+  </script>
 </body>
 </html>
+
